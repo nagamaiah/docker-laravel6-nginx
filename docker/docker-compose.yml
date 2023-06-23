@@ -1,0 +1,58 @@
+version: '3'
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: laravel-app
+    volumes:
+      - ../src:/var/www/html
+    depends_on:
+      - db
+    networks:
+      - laravel6
+    
+  db:
+    image: mysql:5.7
+    environment:
+      MYSQL_DATABASE: laravel6
+      MYSQL_ROOT_PASSWORD: secret
+      MYSQL_USER: laravel6
+      MYSQL_PASSWORD: secret
+    volumes:
+      - dbdata:/var/lib/mysql
+    networks:
+      - laravel6
+  
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin
+    container_name: phpmyadmin
+    ports:
+     - 8081:80
+    environment:
+      - PMA_HOST=db
+      - PMA_PORT=3306
+    depends_on:
+      - db
+    networks:
+     - laravel6
+
+  nginx-server:
+    image: nginx:latest
+    container_name: nginx-server
+    ports:
+      - 8880:80
+    volumes:
+      - ../src:/var/www/html
+      - ./nginx/default.conf:/etc/nginx/conf.d/default.conf
+    depends_on:
+      - app
+    networks:
+      - laravel6
+
+volumes:
+  dbdata:
+
+networks:
+  laravel6:
+    driver: bridge
